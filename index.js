@@ -63,16 +63,21 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
 		duration: parseInt(req.body.duration),
 		description: req.body.description
 	};
-	var Docs = await Exercise.findOne({_id: req.body[':_id']});
-	Docs.log.push(update);
-	await Docs.save();
-	res.json({ 
-		_id: Docs._id,
-		username: Docs.username,
-		date: update.date,
-		duration: update.duration,
-		description: update.description,
-	});
+	try {
+		var Docs = await Exercise.findOne({_id: req.body[':_id']});
+		Docs.log.push(update);
+		await Docs.save();
+		res.json({ 
+			_id: Docs._id,
+			username: Docs.username,
+			date: update.date,
+			duration: update.duration,
+			description: update.description,
+		});
+	}
+	catch(err) {
+		return console.error(err);
+	}
 })
 
 // Delete all records in the DB
