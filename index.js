@@ -60,7 +60,7 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
 		date: req.body.date ? 
 		(new Date(req.body.date)).toDateString() :
 		(new Date()).toDateString(),
-		duration: req.body.duration,
+		duration: parseInt(req.body.duration),
 		description: req.body.description
 	};
 	var Docs = await Exercise.findOne({_id: req.body[':_id']});
