@@ -65,6 +65,7 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
 			description: req.body.description
 		};
 		var Docs = await Exercise.findOne({_id: req.body[':_id']});
+		
 		Docs.log.push(update);
 		await Docs.save();
 		console.log("checking for id: " + req.body[':_id']);
@@ -76,6 +77,7 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
 			_id: req.body[':_id']
 			
 		});
+		
 	} catch(err) {
 		return console.log(err);
 	}
