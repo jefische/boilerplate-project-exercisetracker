@@ -57,7 +57,9 @@ app.get('/api/users', async (req, res) => {
 // fields added.
 app.post('/api/users/:_id/exercises', async (req, res) => {
 	const update = {
-		date: req.body.date,
+		date: req.body.date ? 
+		(new Date(req.body.date)).toDateString() :
+		(new Date()).toDateString(),
 		duration: req.body.duration,
 		description: req.body.description
 	};
@@ -67,9 +69,9 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
 	res.json({ 
 		_id: Docs._id,
 		username: Docs.username,
-		date: Docs.log[0].date,
-		duration: Docs.log[0].duration,
-		description: Docs.log[0].description,
+		date: update.date,
+		duration: update.duration,
+		description: update.description,
 	});
 })
 
