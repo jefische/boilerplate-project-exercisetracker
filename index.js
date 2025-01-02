@@ -44,9 +44,33 @@ app.post('/api/users', async (req, res) => {
 })
 
 // (4) GET request to /api/users returns a list of all users.
+// (5) GET request to /api/users returns an array
+// (6) Each element in the array returned from GET /api/users is an object literal containing a user's username and _id.
 app.get('/api/users', async (req, res) => {
 	var allDocs = await Exercise.find({});
 	res.send(allDocs);
+})
+
+// (7) You can POST to /api/users/:_id/exercises with form data description, duration, and optionally date. 
+// If no date is supplied, the current date will be used.
+// (8) The response returned from POST /api/users/:_id/exercises will be the user object with the exercise
+// fields added.
+app.post('/api/users/:_id/exercises', async (req, res) => {
+	const update = {
+		date: req.body.date,
+		duration: req.body.duration,
+		description: req.body.description
+	};
+	var Docs = await Exercise.findOne({_id: req.body[':_id']});
+	Docs.log.push(update);
+	await Docs.save();
+	res.json({ 
+		_id: Docs._id,
+		username: Docs.username,
+		date: Docs.log[0].date,
+		duration: Docs.log[0].duration,
+		description: Docs.log[0].description,
+	});
 })
 
 // Delete all records in the DB
@@ -57,6 +81,12 @@ app.get('/api/delete', async (req, res) => {
 	res.redirect('/');
 })
 
+
+app.get('/api/palindrome', (req, res) => {
+	const result = 'textxet';
+	res.send(palindrome(result));
+	// res.send('hello');
+})
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
@@ -74,5 +104,23 @@ function makeid(length) {
 		result += characters.charAt(Math.random() * charactersLength);
 		counter += 1;
 	}
+	return result;
+}
+
+// Test for palindrome
+function palindrome(text) {
+	const charlength = text.length;
+	let newtext = '';
+	for (i = charlength - 1; i >= 0; i--) {
+		newtext += text[i];
+	}
+	const ispalindrome = newtext == text;
+	let result = {
+		'checking for palindrome': text,
+		'text length': charlength,
+		'new text': newtext,
+		'is this a palindrome?': ispalindrome
+	}
+
 	return result;
 }
