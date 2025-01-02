@@ -51,30 +51,34 @@ app.get('/api/users', async (req, res) => {
 	res.send(allDocs);
 })
 
-// (7) You can POST to /api/users/:_id/exercises with form data description, duration, and optionally date. 
+// (7) You can POST to /api/users/:_id/exercises with form data description, duration, and optionally date.
 // If no date is supplied, the current date will be used.
 // (8) The response returned from POST /api/users/:_id/exercises will be the user object with the exercise
 // fields added.
 app.post('/api/users/:_id/exercises', async (req, res) => {
-	const update = {
-		date: req.body.date ? 
-		(new Date(req.body.date)).toDateString() :
-		(new Date()).toDateString(),
-		duration: parseInt(req.body.duration),
-		description: req.body.description
-	};
-	var Docs = await Exercise.findOne({_id: req.body[':_id']});
-	if (Docs) {
+	try {
+		const update = {
+			date: req.body.date ? 
+			(new Date(req.body.date)).toDateString() :
+			(new Date()).toDateString(),
+			duration: parseInt(req.body.duration),
+			description: req.body.description
+		};
+		var Docs = await Exercise.findOne({_id: req.body[':_id']});
 		Docs.log.push(update);
 		await Docs.save();
+		console.log("checking for id: " + req.body[':_id']);
+		res.json({ 
+			username: Docs.username,
+			description: update.description,
+			duration: update.duration,
+			date: update.date,
+			_id: req.body[':_id']
+			
+		});
+	} catch(err) {
+		return console.log(err);
 	}
-	res.json({ 
-		_id: Docs._id,
-		username: Docs.username,
-		date: update.date,
-		duration: update.duration,
-		description: update.description,
-	});
 	
 })
 
