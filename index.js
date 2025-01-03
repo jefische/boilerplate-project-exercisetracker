@@ -56,7 +56,6 @@ app.get('/api/users', async (req, res) => {
 // (8) The response returned from POST /api/users/:_id/exercises will be the user object with the exercise
 // fields added.
 app.post('/api/users/:_id/exercises', async (req, res) => {
-	try {
 		const update = {
 			date: req.body.date ? 
 			(new Date(req.body.date)).toDateString() :
@@ -64,23 +63,21 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
 			duration: parseInt(req.body.duration),
 			description: req.body.description
 		};
+		
 		var Docs = await Exercise.findOne({_id: req.body[':_id']});
-		
-		Docs.log.push(update);
-		await Docs.save();
-		console.log("checking for id: " + req.body[':_id']);
-		res.json({ 
-			username: Docs.username,
-			description: update.description,
-			duration: update.duration,
-			date: update.date,
-			_id: req.body[':_id']
-			
-		});
-		
-	} catch(err) {
-		return console.log(err);
-	}
+		if (Docs != null) {
+			Docs.log.push(update);
+			await Docs.save();
+			res.json({ 
+				_id: req.body[':_id'],
+				username: Docs.username,
+				date: update.date,
+				duration: update.duration,
+				description: update.description
+			});
+		} else {
+			res.send("No ID found");
+		}
 	
 })
 
