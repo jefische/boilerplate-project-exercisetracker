@@ -76,7 +76,7 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
 				description: update.description
 			});
 		} else {
-			res.send("No ID found");
+			res.json({error: "No ID found"});
 		}
 	
 })
