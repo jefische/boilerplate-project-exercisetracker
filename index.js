@@ -56,29 +56,97 @@ app.get('/api/users', async (req, res) => {
 // (8) The response returned from POST /api/users/:_id/exercises will be the user object with the exercise
 // fields added.
 app.post('/api/users/:_id/exercises', async (req, res) => {
-		const update = {
-			date: req.body.date ? 
-			(new Date(req.body.date)).toDateString() :
-			(new Date()).toDateString(),
-			duration: parseInt(req.body.duration),
-			description: req.body.description
-		};
-		
-		var Docs = await Exercise.findOne({_id: req.body[':_id']});
-		if (Docs != null) {
-			Docs.log.push(update);
-			await Docs.save();
-			res.json({ 
-				_id: req.body[':_id'],
-				username: Docs.username,
-				date: update.date,
-				duration: update.duration,
-				description: update.description
-			});
-		} else {
-			res.json({error: "No ID found"});
-		}
+	// console.log('the request id is: ' + req.body[':_id']);
+	// console.log('the request description is: ' + req.body.description);
+	// console.log('the request duration is: ' + req.body.duration);
+	// console.log('the request body payload is: ')
+	// console.log(req.body);
+	// console.log('the request parameters are: ')
+	// console.log(req.params);
+
+	const update = {
+		date: req.body.date ? 
+		(new Date(req.body.date)).toDateString() :
+		(new Date()).toDateString(),
+		duration: parseInt(req.body.duration),
+		description: req.body.description
+	};
+	var Docs = await Exercise.findOne({_id: req.params._id}); // req.body[':_id'] does not pass FCC test 8 b/c the user id is in the params, not the body payload?
+															 // I think this might have something to do with :_id vs _id on the body and params payloads respectively.
+	if (Docs != null) {
+		Docs.log.push(update);
+		await Docs.save();
+		res.json({ 
+			_id: req.params._id,
+			username: Docs.username,
+			date: update.date,
+			duration: update.duration,
+			description: update.description
+		});
+	} else {
+		console.log(Docs);
+		res.json({error: "No ID found"});
+	}
+})
+
+// (9) GET request to /api/users/:_id/logs retrieves a full exercise log of any user.
+// (10) Request to /api/users/:_id/logs returns a user object with a count property representing the number of exercises for that user.
+// (11) GET request to /api/users/:_id/logs will return the user object with a log array of all the exercises added.
+// (12) Each item in the log array that is returned from GET /api/users/:_id/logs is an object that should have a description, duration, and date properties.
+// (13) The description property of any object in the log array that is returned from GET /api/users/:_id/logs should be a string.
+// (14) The duration property of any object in the log array that is returned from GET /api/users/:_id/logs should be a number.
+// (15) The date property of any object in the log array that is returned from GET /api/users/:_id/logs should be a string. Use the dateString format of the Date API.
+app.get('/api/users/:_id/logs', async (req, res) => {
+	var Logs = await Exercise.findOne({_id: req.params._id});
+	var count = Logs.log.length;
+	var result = {
+		username: Logs.username,
+		count: count,
+		_id: req.params._id,
+		log: []
+	};
 	
+	Logs.log.forEach(element => {
+		result.log.push({
+			description: element.description,
+			duration: element.duration,
+			date: element.date.toDateString()
+		})
+	});
+	// console.log(result)
+
+	// (16) You can add from, to and limit parameters to a GET /api/users/:_id/logs request to retrieve part of the log of any user. from and to are
+	// dates in yyyy-mm-dd format. limit is an integer of how many logs to send back.
+	var from = req.query.from;
+	var to = req.query.to;
+	var limit = req.query.limit;
+	var filterResults = result;
+
+	if(from != undefined & to != undefined) {
+		var from_dateArray = from.split('-');
+		var from_year = from_dateArray[0];
+		var from_month = parseInt(from_dateArray[1]) - 1;
+		var from_day = from_dateArray[2];
+		var fromDate = new Date(from_year, from_month, from_day);
+
+		var to_dateArray = to.split('-');
+		var to_year = to_dateArray[0];
+		var to_month = parseInt(to_dateArray[1]) - 1;
+		var to_day = to_dateArray[2];
+		var toDate = new Date(to_year, to_month, to_day);
+
+		filterResults.log = result.log.filter(x => {
+			return (new Date(x.date) >= fromDate) & (new Date(x.date) <= toDate);
+		})
+
+	}
+	
+	if(limit != undefined) {
+		var logRemove = filterResults.log.length - limit;
+		filterResults.log.splice(0, logRemove);
+	}
+
+	res.send(filterResults);
 })
 
 // Delete all records in the DB
